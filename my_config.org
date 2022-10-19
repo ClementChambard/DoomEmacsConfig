@@ -1,0 +1,205 @@
+#+TITLE: Clement's emacs config
+#+AUTHOR: Clement Chambard
+#+DESCRIPTION: My personal doom emacs config
+
+* General config
+# $DOOMDIR/config.el -*- lexical-binding: t; -*-
+** User infos
+ Some functionality uses this to identify you, e.g. GPG configuration, email
+ clients, file templates and snippets.
+
+#+begin_src emacs-lisp
+
+(setq user-full-name "Clement Chambard"
+    user-mail-address "cclems2002@gmail.com")
+
+#+end_src
+
+** Font
+ Doom exposes five (optional) variables for controlling fonts in Doom. Here
+ are the three important ones:
+
+ + `doom-font'
+ + `doom-variable-pitch-font'
+ + `doom-big-font' -- used for `doom-big-font-mode'; use this for
+    presentations or streaming.
+
+ They all accept either a font-spec, font string ("Input Mono-12"), or xlfd
+ font string. You generally only need these two:
+ (setq doom-font (font-spec :family "monospace" :size 12 :weight 'semi-light)
+       doom-variable-pitch-font (font-spec :family "sans" :size 13))
+
+#+begin_src emacs-lisp
+
+(setq doom-font (font-spec :family "Mononoki Nerd Font" :size 15)
+    doom-variable-pitch-font (font-spec :family "Mononoki Nerd Font" :size 15))
+
+#+end_src
+
+** Theme
+ There are two ways to load a theme. Both assume the theme is installed and
+ available. You can either set `doom-theme' or manually load a theme with the
+ `load-theme' function. This is the default:
+
+#+begin_src emacs-lisp
+
+(setq doom-theme 'doom-one)
+
+#+end_src
+
+** Line numbers
+This determines the style of line numbers in effect. If set to `nil', line
+numbers are disabled. For relative line numbers, set this to `relative'.
+
+#+begin_src emacs-lisp
+
+(setq display-line-numbers-type t)
+
+#+end_src
+
+** Other
+ Here are some additional functions/macros that could help you configure Doom:
+
+ - `load!' for loading external *.el files relative to this one
+ - `use-package!' for configuring packages
+ - `after!' for running code after a package has loaded
+ - `add-load-path!' for adding directories to the `load-path', relative to
+   this file. Emacs searches the `load-path' when you load packages with
+   `require' or `use-package'.
+ - `map!' for binding new keys
+
+ To get information about any of these functions/macros, move the cursor over
+ the highlighted symbol at press 'K' (non-evil users must press 'C-c c k').
+ This will open documentation for it, including demos of how they are used.
+
+ You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
+ they are implemented.
+
+
+* Org mode
+
+** Add files to the org agenda
+
+#+begin_src emacs-lisp
+
+(setq org-directory "~/Org"
+    org-agenda-files '("~/Org/agenda.org")
+    org-ellipsis " ▼ "
+    org-log-done t
+    org-hide-emphasis-markers t
+)
+
+#+end_src
+
+** Prettier symbols
+
+#+begin_src emacs-lisp
+
+(add-hook 'org-mode-hook 'org-superstar-mode)
+(add-hook 'org-mode-hook 'org-toggle-pretty-entities)
+
+#+end_src
+
+* Plugin config
+
+** Beacon
+
+#+begin_src emacs-lisp
+
+(beacon-mode 1)
+
+#+end_src
+
+* Key bindings
+
+#+begin_src emacs-lisp
+;;TODO
+#+end_src
+
+* Programming stuff
+** Autocompletion
+
+*** C, C++
+#+begin_src emacs-lisp
+
+(eval-after-load 'company
+'(add-to-list 'company-backends 'company-irony))
+(add-hook 'c++-mode-hook 'irony-mode)
+(add-hook 'c++-mode-hook 'lsp)
+(add-hook 'c-mode-hook 'irony-mode)
+(add-hook 'c-mode-hook 'lsp)
+(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+
+(add-hook 'python-mode-hook 'jedi:setup)
+(setq jedi:complete-on-dot t) ;optional
+
+#+end_src
+
+*** Java
+#+begin_src emacs-lisp
+;;(add-hook 'java-mode-hook #'lsp)
+;;(with-eval-after-load 'lsp-mode
+  ;;(require 'lsp-intellij)
+  ;;(add-hook 'java-mode-hook #'lsp-intellij-enable))
+;;(require 'lsp-ui)
+;;(add-hook 'lsp-after-open-hook #'lsp-ui-mode)
+
+(require 'company-lsp)
+(setq company-lsp-enable-snippet t
+      company-lsp-cache-candidates t)
+(push 'company-lsp company-backends)
+(push 'java-mode company-global-modes)
+
+#+end_src
+
+** jupyter
+
+#+begin_src emacs-lisp
+
+(require 'ein)
+(require 'ein-notebook)
+;;(setq ein:completion-backend 'ein:use-ac-jedi-backend)
+
+#+end_src
+
+** SDAS
+
+#+begin_src emacs-lisp
+
+(require 'sdas-mode)
+
+#+end_src
+
+** UML
+
+#+begin_src emacs-lisp
+
+(setq plantuml-jar-path "~/.doom.d/plantuml.jar")
+(setq plantuml-default-exec-mode 'executable)
+;; org babel
+(add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+
+#+end_src
+
+** Clang format
+
+#+begin_src emacs-lisp
+
+(defun clang-format-save-hook-for-this-buffer ()
+  "Create a buffer local save hook."
+  (add-hook 'before-save-hook
+            (lambda ()
+              (when (locate-dominating-file "." ".clang-format")
+                (clang-format-buffer))
+              ;; Continue to save.
+              nil)
+            nil
+            ;; Buffer local hook.
+            t))
+
+;; Run this for each mode you want to use the hook.
+;(add-hook 'c-mode-hook (lambda () (clang-format-save-hook-for-this-buffer)))
+;(add-hook 'c++-mode-hook (lambda () (clang-format-save-hook-for-this-buffer)))
+(add-hook 'glsl-mode-hook (lambda () (clang-format-save-hook-for-this-buffer)))
+
+#+end_src
